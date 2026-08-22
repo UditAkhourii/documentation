@@ -1,0 +1,94 @@
+---
+title: "How It Works"
+description: "The two-phase diverge/focus loop, the isolation invariant, and the architecture underneath."
+icon: "diagram-project"
+---
+
+ADHD is a two-phase loop with a **hard wall** between the phases. Mixing them is what kills idea quality, because the critic strangles the generator.
+
+## Phase 1 — Diverge (ADHD mode)
+
+Pick N **cognitive frames** from the [frame library](/concepts/frames). Spawn N **parallel** Agent SDK queries, each one a fresh isolated session.
+
+Each branch sees:
+
+- the problem
+- *one* frame's vantage prompt (e.g. *"You think in latency, memory layout, and physical constraints. Re-ask this as a hardware problem."*)
+- a system prompt that **forbids evaluation, ranking, or hedging** — pure generation, JSON array out, no prose
+
+<Warning>
+**Critical invariant:** branches **do not see each other**. The "regulator" branch never reads what the "speedrunner" branch wrote. No anchoring, no shared context, no convergence pressure. If you simulate parallel branches by writing them sequentially in one context, you have not done ADHD — you have done a wider single thought.
+</Warning>
+
+## Phase 2 — Focus
+
+Now the critic comes back online. Three passes:
+
+<Steps>
+  <Step title="Score">
+    Every leaf is scored on `novelty / viability / fit` (0–10 each), as structured JSON. Ideas that look attractive but are traps (hidden cost, false economy, will not scale, premature abstraction) get tagged with a **mechanistic reason** — e.g. *"shelve isn't thread-safe under multi-writer load"* — not a vague risk label.
+  </Step>
+  <Step title="Cluster">
+    Ideas are grouped by **underlying angle**, not surface keywords: "remove-the-server plays", "cache-shaped plays", "batched-window plays". This surfaces the *shape* of the design space so you can argue at the angle level, not idea-by-idea.
+  </Step>
+  <Step title="Deepen top-K">
+    For the K highest combined-score non-trap leaves (default K=3), a focus pass generates: a sketch of how the idea works, the load-bearing risk, the first concrete step a builder would take, and 3–5 child ideas (variations, hybrids, unlocks).
+  </Step>
+</Steps>
+
+The output:
+
+- the wide set, clustered
+- a 2–4 idea shortlist
+- the **★ non-obvious-but-viable pick**, flagged explicitly
+- the trap list, each trap with the reason it's a trap
+- the deepened branches — the "connected dots"
+- one provocation (a wildcard question)
+
+---
+
+## Architecture — the mechanism, not the metaphor
+
+For researchers and infra folks.
+
+### Context-window management
+
+Each divergent branch is its own `query()` call against the [Claude Agent SDK](https://docs.claude.com/en/api/agent-sdk) — a fresh, **stateless session** with no shared KV-cache, no shared message history, no shared system prompt beyond the `claude_code` preset. The only tokens that enter a branch are:
+
+```text
+system  = preset + frame_vantage_prompt + "forbid evaluation/ranking/hedging, JSON array out"
+user    = problem + optional_context
+```
+
+Token cost scales **linearly** in branches (`O(N × per_branch)`), not quadratically — there is no broadcast of prior branches into later ones. The "ADHD" fan-out is true concurrent inference, not interleaved decoding on a shared trajectory.
+
+### Pruning & convergence criteria
+
+Convergence is a **separate LLM call** with an inverted system prompt (critic posture, evaluation mandatory). No heuristic threshold and no logit-bias steering — the critic's structured output *is* the pruning decision. Default `K=3`; the `nonObviousPick` field surfaces the highest-novelty viable leaf even if it's not the highest-fit.
+
+### Routing & orchestration
+
+Multi-agent orchestration runs via parallel `query()` calls, gated by a configurable semaphore (`concurrency`, default 4). Frame selection is deterministic per-seed with a `codeMode` bias toward engineering vantage points. Each frame is a **system-prompt payload** that re-poses the entire question — *"re-ask this as a hardware problem"*, *"re-ask this as a regulator"* — not a logit-level intervention.
+
+```ts
+// the load-bearing call shape — bench/run-evals.ts and src/diverge.ts
+const branches = await Promise.all(
+  frames.map(frame => withSemaphore(concurrency, () => callLLM({
+    systemPrompt: `${frame.vantage}\n\nFORBIDDEN: evaluation, ranking, hedging. JSON array out.`,
+    userPrompt:   `${problem}\n\n${context ?? ""}`,
+  })))
+);
+// branches[i] never sees branches[j] during divergence — by construction.
+```
+
+The generator–critic split is **mechanical** (different API calls, different system prompts) rather than promised in-prompt to the same session. This is the load-bearing design choice that distinguishes ADHD from in-context Tree-of-Thought — see [ADHD vs CoT & ToT](/concepts/vs-cot-and-tot).
+
+## Anti-patterns
+
+These are how the method goes wrong. Watch for them.
+
+- **Convergence disguised as divergence.** Ten minor variations of one idea is not breadth. If every candidate shares the same underlying assumption, you have not diverged — you have decorated.
+- **Weird-for-weird's-sake with no convergence.** A pile of 30 unsorted absurdities is as useless as one safe answer. Always converge.
+- **Walls of equally-weighted prose.** Cluster, label, pull out the best. Structure is half the value.
+- **Refusing to commit.** After diverging, take a position on what is actually promising. "Here are 20 ideas, you decide" is a cop-out.
+- **Skipping the isolation invariant.** Sequential branches in one context anchor each other and the whole method collapses.

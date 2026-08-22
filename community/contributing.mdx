@@ -1,0 +1,68 @@
+---
+title: "Contributing"
+description: "How to contribute a frame, an eval problem, or a loop improvement."
+icon: "code-pull-request"
+---
+
+ADHD is small on purpose — the value lives in the *frames* and the *loop discipline*, not the LOC. Most contributions are one of:
+
+1. **A new frame** (highest leverage, smallest change)
+2. **An improvement to the diverge/score/cluster/deepen loop**
+3. **A new eval problem** that exposes where ADHD wins or loses
+4. **Docs / examples / launch material**
+
+## Dev setup
+
+```bash
+git clone https://github.com/UditAkhourii/adhd.git
+cd adhd
+npm install
+npm run build
+export ANTHROPIC_API_KEY=...   # or rely on local Claude Code auth
+node dist/cli.js "your test problem here"
+```
+
+Iterating without rebuilding:
+
+```bash
+npm run dev -- "your test problem here"   # tsx, no build step
+```
+
+## Authoring a new frame
+
+The cheapest, highest-leverage contribution — every new frame widens what the package can surface for the next user. A good frame pushes the generator into a corner it would not naturally drift toward; bad frames are paraphrases of an existing one.
+
+See [Frames → Authoring your own](/concepts/frames#authoring-your-own-frame) for the shape, the quality bar, and how to test it in isolation.
+
+## Adding an eval problem
+
+Eval problems live in `bench/problems.json`. See [Evals → Methodology](/evals/methodology#adding-a-problem) for what makes a good problem and how to run just yours. Costs ~10 LLM calls per problem.
+
+## Loop changes (engine.ts)
+
+The loop is small on purpose. Before changing it, read the source spec — most "improvements" violate the load-bearing invariants:
+
+<Warning>
+- **Branches must not see each other during divergence.** This is the whole point.
+- **Generator and critic must use separate LLM calls with opposite system prompts.** Don't merge them for efficiency.
+- **Score before deepen.** Deepening unscored ideas is just expensive generation.
+- **Cluster by underlying angle, not surface keywords.** If the cluster pass starts outputting "caching ideas" instead of "remove-the-server plays", the prompt has drifted.
+</Warning>
+
+If your change weakens any of these, the bar is higher. Good loop changes: recursive deepen (multi-level ToT), pluggable scorers, streaming output during divergence, cross-model support.
+
+## Style
+
+- TypeScript strict mode. No `any` unless commented why.
+- Comments are for **why**, not what. Code shows what.
+- New deps need justification. Current deps: `@anthropic-ai/claude-agent-sdk`, `p-limit`, `zod` — that's already three more than the loop strictly needs.
+- No emojis in source (the renderer is allowed terminal symbols).
+
+## PRs
+
+- One concern per PR.
+- New frame? Include a 2-line "what this frame catches that others miss" in the PR body.
+- New eval? Include the run output.
+- Loop change? Include before/after on at least one eval problem.
+
+By contributing, you agree your contribution is licensed under **MIT**.

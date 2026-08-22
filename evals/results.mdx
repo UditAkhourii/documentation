@@ -1,0 +1,37 @@
+---
+title: "Results"
+description: "Head-to-head numbers — ADHD vs a single-shot baseline across six open-ended engineering problems."
+icon: "chart-column"
+---
+
+Mean scores across 6 open-ended engineering problems (0–10), ADHD vs a single-shot baseline at the same model, judged by an independent LLM with a skeptical-staff-engineer prompt, A/B order randomized per problem.
+
+| Dimension          | ADHD     | Baseline | Δ         | Ratio |
+| ------------------ | -------: | -------: | --------: | ----: |
+| breadth            | **9.00** | 4.83     | **+4.17** | 1.9×  |
+| novelty            | **7.83** | 2.67     | **+5.17** | 2.9×  |
+| trap detection     | **9.50** | 1.83     | **+7.67** | 5.2×  |
+| actionability      | **9.50** | 6.50     | **+3.00** | 1.5×  |
+| builder usefulness | **7.67** | 6.83     | **+0.83** | 1.1×  |
+
+**ADHD wins 5 of 6 problems head-to-head.** The biggest gap is **trap detection** — single-shot baselines almost never name the seductive-but-broken ideas, while ADHD's separate critic pass routinely flags 15–20 of them with mechanistic reasons.
+
+Full per-problem verdicts live in [`EVALS.md`](https://github.com/UditAkhourii/adhd/blob/main/EVALS.md); full transcripts in [`bench/results.json`](https://github.com/UditAkhourii/adhd/blob/main/bench/results.json). *Run date: 2026-05-25.*
+
+## Independent external benchmarks
+
+- [**A measured duel vs. single-shot**](https://miyagadget.page/en/blog/2026/06/03/adhd-coding-agent-skill-en/) by Shichinomiya — an independent blind-scored benchmark (2 problems, LLM-as-judge, A/B positions swapped). ADHD won both, with the biggest gains in novelty (4.5→9.0) and trap detection (5.0→9.0), at a real cost of ~2.3× time and ~1.9× output.
+- [**Han plugin compatibility analysis**](https://github.com/testdouble/han/blob/adhd-swarm-research/docs/research/adhd-application-to-han.md) — an evidence-based review using Han's own `/research` skill: 11 sources, 8 validation rounds. Findings tracked openly as issues [#16](https://github.com/UditAkhourii/adhd/issues/16), [#17](https://github.com/UditAkhourii/adhd/issues/17), and [#18](https://github.com/UditAkhourii/adhd/issues/18).
+
+## Known limitations
+
+Stated plainly, because reviewers will find them anyway:
+
+- **Same-model judging.** The judge is the same model family as the generator (familiarity bias). Cross-model judging is on the roadmap ([issue #6](https://github.com/UditAkhourii/adhd/issues/6)).
+- **Small set.** Six problems, all engineering-shaped.
+- **Scale gap.** Evals run at K=5 branches; the academic diversity literature measures at K=100. Bridging this is tracked in [issue #18](https://github.com/UditAkhourii/adhd/issues/18).
+- **Human-in-the-loop applicability is unproven.** A controlled CHI 2025 study found no significant benefit from LLM problem-reframing with human designers. ADHD's LLM-to-LLM context differs, but this is honest counter-evidence, tracked in [issue #16](https://github.com/UditAkhourii/adhd/issues/16).
+
+<Card title="Reproduce the numbers" icon="flask" href="/evals/methodology">
+  Methodology, how the judge is prompted, and how to run the suite yourself.
+</Card>

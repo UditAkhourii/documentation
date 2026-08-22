@@ -1,0 +1,47 @@
+---
+title: "Methodology"
+description: "How the eval suite works and how to run it yourself."
+icon: "flask"
+---
+
+ADHD ships with a reproducible eval suite that compares it head-to-head against a single-shot baseline across a set of open-ended engineering problems.
+
+## The setup
+
+- **Generator vs baseline:** both run at the **same model**; ADHD runs the full diverge → score → cluster → deepen loop, the baseline gets one shot.
+- **Judge:** an LLM-as-judge with a **skeptical-staff-engineer** system prompt scores both outputs on five dimensions — **breadth, novelty, trap detection, actionability, builder usefulness** — and declares a winner.
+- **Bias control:** A/B order is randomized per problem to balance positional bias.
+- **Cost:** ~10 LLM calls per problem (5 frames + score + cluster + 3 deepen + 1 baseline + 1 judge).
+
+## Running it
+
+```bash
+npm run evals                          # full suite (~6 problems, ~10 LLM calls each)
+npm run evals:quick                    # first 2 problems
+npm run evals -- --problem lru-100ms   # one specific problem
+```
+
+Output: `EVALS.md` (human-readable verdicts + aggregate table) and `bench/results.json` (full transcripts).
+
+<Note>
+The eval suite is **local only** — there is no CI workflow for it. Reproducible numbers come from `npm run evals` on your machine; commit the resulting `EVALS.md` if you want to update the repo's published figures. The committed `EVALS.md` was generated this way.
+</Note>
+
+## Adding a problem
+
+Eval problems live in [`bench/problems.json`](https://github.com/UditAkhourii/adhd/blob/main/bench/problems.json) — adding one is a 4-line change. A good eval problem has:
+
+- An **open-ended** answer space (not "what's the syntax for X")
+- A **non-trivial obvious answer**, so the baseline has something credible to fall back on
+- A **specific constraint** that rewards non-obvious thinking (the "100ms" or "leader election" in the existing problems)
+- A **category** that's not already over-represented
+
+Then:
+
+```bash
+npm run build
+npm run evals                            # full suite
+npm run evals -- --problem your-new-id   # just yours
+```
+
+Include the run output in your PR — see [Contributing](/community/contributing).

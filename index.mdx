@@ -1,20 +1,109 @@
 ---
 title: "Introduction"
-description: "Welcome to your project"
+description: "ADHD is a skill for coding agents — an architectural fix for premature convergence in autoregressive reasoning."
+icon: "sparkles"
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+## What is ADHD?
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+Linear Chain-of-Thought anchors on whatever it says first. Tree-of-Thought widens the search but still walks a single shared context, so the anchoring persists across branches. **ADHD treats this as an architectural problem, not a prompting one.**
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+It spawns N isolated reasoning processes under deliberately distorted cognitive frames — a hardware engineer, a regulator, a 10-year-old, a speedrunner — with **zero shared context during divergence**, then runs a separate critic pass to score, cluster, prune traps, and deepen the survivors.
+
+Reach for it on **design decisions, fuzzy debugging, naming, API surface design, strategy**, and any prompt of the shape *"give me a few ways to…"*.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Run your first ADHD loop as a skill, from the CLI, or in TypeScript.
+  </Card>
+  <Card title="How it works" icon="diagram-project" href="/concepts/how-it-works">
+    The two-phase diverge/focus loop and the isolation invariant that makes it work.
+  </Card>
+  <Card title="The frames" icon="masks-theater" href="/concepts/frames">
+    The 15 cognitive frames, how selection works, and how to author your own.
+  </Card>
+  <Card title="Evals" icon="chart-column" href="/evals/results">
+    Head-to-head numbers against a single-shot baseline, judged by an independent LLM.
+  </Card>
+</CardGroup>
+
+## Why not just prompt harder?
+
+The first three answers a model gives are the answers a senior engineer would give in thirty seconds. Correct. Forgettable. The interesting answers live past number three, in the awkward middle nobody walks into.
+
+A single chain told to "consider alternatives" generates those alternatives **into one shared context, sequentially** — it anchors on whichever alternative it produces first and every subsequent "alternative" drifts toward it. ADHD's branches never share a context during divergence, so there is no first answer to anchor on. Distinctness is produced **by construction**, not requested by a prompt and hoped for.
+
+> *"List alternatives" varies the **output**; ADHD varies the **generator**. Only the second escapes the anchor.*
+
+## The loop in one picture
+
+```text
+                        ┌──────────────────────────┐
+                        │        Problem P         │
+                        └────────────┬─────────────┘
+                                     │  pick N frames
+        ┌──────────┬──────────┬──────┴───┬──────────┬──────────┐
+        ▼          ▼          ▼          ▼          ▼          ▼
+   [hardware] [regulator] [10-y-old] [biology] [speedrun]  … isolated,
+    branch      branch      branch    branch     branch       parallel,
+        │          │          │          │          │         no critic
+        └──────────┴──────────┴────┬─────┴──────────┘
+                                   ▼
+                        ┌──────────────────────────┐
+                        │   Critic (separate call) │
+                        │  score → cluster → prune │
+                        │  traps → deepen top-K    │
+                        └────────────┬─────────────┘
+                                     ▼
+              wide set · shortlist · ★ non-obvious pick
+              traps with reasons · deepened sketches · provocation
+```
+
+1. **Diverge.** N parallel, **isolated** LLM calls — each sees the problem plus one frame's vantage prompt, and a system prompt that forbids evaluation. Branches never see each other, so no anchoring.
+2. **Focus.** A separate critic call scores every idea (`novelty / viability / fit`), flags traps with reasons, clusters by underlying angle, and deepens the top-K survivors into sketches with risks and first steps.
+
+The generator–critic split is **mechanical** — separate LLM calls with opposite system prompts — not promised in one prompt.
+
+## Baseline vs ADHD, one problem
+
+> **Problem.** *"We have a CLI that calls an LLM and it sometimes hangs for 90 seconds. Design the right retry/timeout/UX strategy."*
+
+<Tabs>
+  <Tab title="Baseline (single-shot)">
+    Walks through four **textbook** patterns: progressive timeout with staged UI, fast-fail + exponential backoff, hedged parallel requests, streaming with keepalive. Lands on a sensible hybrid recommendation — the answer a senior engineer gives in 30 seconds.
+
+    **What's missing:** no traps named, no acknowledgement that the *user* might want to bail out of a slow request, no questioning of the "wait then retry the same model" frame.
+  </Tab>
+  <Tab title="ADHD">
+    Spawns 6 isolated frames and surfaces a **wide set** of 30+ ideas across economic-incentive, async-control-surface, gamification, perceptual-distortion, collective-intelligence, and redundancy-race clusters, then:
+
+    - ★ **Non-obvious pick:** *"rage-quit = instant abort + branch to cheaper/faster model"* — one click cancels and re-submits to a Haiku-class model. The thing baseline never considers: **the slow model might just be the wrong model for this prompt.**
+    - Plus a shortlist: scout-fork to alternate endpoints at 30s; daemonize the CLI with ticket IDs; race 3 LLM replicas and cache the winner.
+    - **20 traps flagged with one-line reasons** — before they cost engineering time.
+  </Tab>
+</Tabs>
+
+Independent LLM judge on this problem: **breadth 9 vs 6, novelty 8 vs 3, trap detection ~8 vs ~2**. See [Evals](/evals/results) for the full suite.
+
+## Three ways to run it
+
+<CardGroup cols={3}>
+  <Card title="Agent skill" icon="wand-magic-sparkles" href="/usage/skill">
+    `npx skills add UditAkhourii/adhd` — works in Claude Code, Cursor, Codex, and ~50 more agents. No API key needed.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/usage/cli">
+    `npm install -g adhd-agent` — run the loop from any terminal, with structured JSON output.
+  </Card>
+  <Card title="TypeScript library" icon="code" href="/usage/library">
+    `npm install adhd-agent` — call `run()` at decision points inside your own agent.
+  </Card>
+</CardGroup>
+
+## Project
+
+ADHD operationalizes the *Divergent Ideation* source spec and ships under the MIT license.
+
+- 📄 **Preprint:** [ADHD: Parallel Divergent Ideation for Coding Agents](https://adhdstack.github.io/)
+- 📰 **Featured:** [The New Stack ran a feature story](https://thenewstack.io/claude-code-adhd/) on ADHD for Claude Code
+- 👤 **Author:** Udit Akhouri — [@akhouriudit](https://x.com/akhouriudit) · [GitHub](https://github.com/UditAkhourii)
+- 💬 **Community:** [Discord](https://discord.gg/NbWwkwwGw) · [join as a contributor or adopter](https://tally.so/r/WO1Nzj)

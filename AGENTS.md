@@ -1,33 +1,30 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
-
 # Documentation project instructions
 
 ## About this project
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
+- This is the documentation site for [ADHD](https://github.com/UditAkhourii/adhd) — parallel divergent ideation for coding agents — built on [Mintlify](https://mintlify.com)
 - Pages are MDX files with YAML frontmatter
 - Configuration lives in `docs.json`
-- Use the Mintlify MCP server, `https://mcp.mintlify.com`, to edit content and settings via MCP
-- Use the Mintlify docs MCP server, `https://www.mintlify.com/docs/mcp`, to query information about using Mintlify via MCP
+- Source of truth for technical claims is the [ADHD repo](https://github.com/UditAkhourii/adhd): `README.md`, `skills/adhd/SKILL.md`, `documentation/`, and `CONTRIBUTING.md` — keep these docs in sync with it
+- For Mintlify product knowledge (components, configuration, writing standards), install the Mintlify skill: `npx skills add https://mintlify.com/docs`
 
 ## Terminology
 
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+- "ADHD" is the project name (an architectural method), always uppercase
+- Use "frame" / "vantage operator", never "persona" — frames re-pose the problem, they are not role-played identities
+- "Diverge" and "Focus" are the two phases; the "critic" is the separate scoring/clustering LLM call
+- The npm package is `adhd-agent`; the skill file is `SKILL.md`
+- "Trap" = an idea that looks good but isn't, always flagged with a mechanistic reason
 
 ## Style preferences
 
-{/* Add any project-specific style rules below */}
-
 - Use active voice and second person ("you")
 - Keep sentences concise — one idea per sentence
-- Use sentence case for headings
 - Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+- Code formatting for file names, commands, paths, flags, and code references
+- Keep the project's voice: direct, honest about costs and limitations, no hype
 
 ## Content boundaries
 
-{/* Define what should and shouldn't be documented */}
-{/* Example: Don't document internal admin features */}
+- Don't invent benchmark numbers — eval figures come from the ADHD repo's `EVALS.md` and cited external reviews only
+- State limitations plainly (same-model judging, small problem set, scale gap)
