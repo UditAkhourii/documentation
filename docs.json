@@ -1,81 +1,97 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "almond",
-  "name": "ADHD Focus",
+  "theme": "mint",
+  "name": "ADHD",
+  "description": "Parallel divergent ideation for coding agents — an architectural fix for premature convergence in autoregressive reasoning.",
   "colors": {
-    "primary": "#7C3AED",
-    "light": "#A78BFA",
-    "dark": "#5B21B6"
+    "primary": "#FF5500",
+    "light": "#FF7A3D",
+    "dark": "#CC4400"
   },
   "favicon": "/favicon.svg",
-  "navigation": {
-    "pages": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      }
-    ],
-    "groups": [
-      {
-        "group": "Get Started",
-        "icon": "rocket",
-        "pages": [
-          "index",
-          "quickstart",
-          "getting-started/account-setup"
-        ]
-      },
-      {
-        "group": "Core Features",
-        "icon": "brain",
-        "pages": [
-          "features/focus-sessions",
-          "features/task-management",
-          "features/habit-tracking",
-          "features/rewards"
-        ]
-      },
-      {
-        "group": "Customization",
-        "icon": "sliders",
-        "pages": [
-          "customization/preferences",
-          "customization/notifications",
-          "customization/themes"
-        ]
-      },
-      {
-        "group": "Account & Billing",
-        "icon": "credit-card",
-        "pages": [
-          "account/profile",
-          "account/subscription",
-          "account/data-privacy"
-        ]
-      },
-      {
-        "group": "Troubleshooting",
-        "icon": "life-ring",
-        "pages": [
-          "support/faq",
-          "support/common-issues"
-        ]
-      }
-    ]
-  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "index",
+          "quickstart",
+          "installation"
+        ]
+      },
+      {
+        "group": "Core Concepts",
+        "pages": [
+          "concepts/how-it-works",
+          "concepts/frames",
+          "concepts/vs-cot-and-tot",
+          "concepts/when-to-use"
+        ]
+      },
+      {
+        "group": "Using ADHD",
+        "pages": [
+          "usage/skill",
+          "usage/cli",
+          "usage/library",
+          "usage/agent-integration"
+        ]
+      },
+      {
+        "group": "Evals & Results",
+        "pages": [
+          "evals/results",
+          "evals/methodology",
+          "evals/roadmap"
+        ]
+      },
+      {
+        "group": "Community",
+        "pages": [
+          "community/adopters",
+          "community/contributing"
+        ]
+      }
+    ]
+  },
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:support@adhdfocus.app"
+        "label": "Preprint",
+        "href": "https://adhdstack.github.io/"
+      },
+      {
+        "label": "Discord",
+        "href": "https://discord.gg/NbWwkwwGw"
       }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/UditAkhourii/adhd"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
     ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/UditAkhourii/adhd",
+      "x": "https://x.com/akhouriudit",
+      "linkedin": "https://www.linkedin.com/in/udit-akhouri-10160a168/",
+      "discord": "https://discord.gg/NbWwkwwGw"
+    }
   }
 }

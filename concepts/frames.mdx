@@ -1,0 +1,90 @@
+---
+title: "Frames"
+description: "The 15 cognitive distortions that drive divergence, how selection works, and how to author your own."
+icon: "masks-theater"
+---
+
+A frame is a **vantage operator**: a system-prompt payload that re-poses the entire problem from a different cognitive position. Not a persona, not a domain expert — a deliberate distortion that forces the generator into a corner it would not naturally drift toward.
+
+15 built-in frames ship today, biased toward engineering when `codeMode` is on (the default). Each is a vantage prompt plus tags.
+
+## The frame library
+
+| Frame | Vantage prompt | Tags |
+|---|---|---|
+| **Hardware engineer** | You think in latency, memory layout, and physical constraints. Re-ask this as a hardware/firmware problem. What does the bus topology, cache, timing budget tell you? | code, wild |
+| **Regulator / auditor** | You audit systems for compliance and failure modes. What must be provable, traceable, or refusable here? | design, general |
+| **10-year-old** | You are a curious 10-year-old who has never seen software. Describe naive but unencumbered approaches. Ignore convention. | general, wild |
+| **Competitor trying to break it** | You are a hostile competitor or attacker. Generate approaches that exploit, fail, or sabotage the obvious solution. Then invert into ideas. | code, design |
+| **Biology** | Transplant a mechanism from biology (immune systems, neural plasticity, cell signaling, evolution, gut flora). Force-fit it onto this engineering problem. | code, wild |
+| **Logistics** | Steal mechanisms from logistics: queues, batching, just-in-time, hub-and-spoke, returns, last-mile. Apply them literally. | code, design |
+| **Game design** | Approach this as a game designer. What are the loops, rewards, friction, save-states, speedrun tricks? Treat the user as a player. | design, general |
+| **Markets** | Treat the problem as a market. Buyers, sellers, market-makers. What does an auction, a futures contract, a clearing house look like here? | design, wild |
+| **Inversion** | Ask the OPPOSITE question. If the goal is X, brainstorm how to guarantee NOT X. Then negate each answer back. | code, design, general |
+| **Extreme: $0 budget, 1 hour** | No money, no team, one hour. What is the crudest version that still does the load-bearing thing? | code, general |
+| **Extreme: infinite budget, 10 years** | Infinite compute, infinite engineers, a decade. What is the maximalist version? | design, wild |
+| **Remove the load-bearing assumption** | Name the thing everyone treats as fixed (framework, database, request-response model, network). Imagine it is gone. What is possible? | code, design, wild |
+| **Speedrunner** | You are a speedrunner. Find glitches, skips, out-of-bounds tricks, frame-perfect shortcuts. What is the abusive-but-legal path? | code, wild |
+| **Ant colony / swarm** | No central planner. Many dumb agents, local rules, pheromone trails. How does the problem solve itself emergently? | code, wild |
+| **3am on-call** | You are the on-call engineer woken at 3am when this breaks. What design would let you not get paged? | code, design |
+
+## How frames are selected
+
+- `codeMode` (default `true`) biases selection toward `code` and `design` tags. For code-shaped problems: 4 frames tagged `code` or `design`, plus 1 tagged `wild`. For open product or strategy problems: a mix from all tags.
+- A `wild` frame always gets one **reserved slot** per run so divergence stays weird.
+- Selection is **deterministic per-seed** so runs are reproducible — but varies across sessions so the same problem produces different candidate sets when re-run.
+
+## Frames vs personas
+
+Frames are **not** personas. Persona-prompting research (e.g. *"you are John, a 34-year-old engineer"*) studies simulated identities; some findings report that ordinary attribute-personas outperform curated expert-personas. ADHD frames are neither — they are *vantage operators* (*"you think in latency, memory layout, and physical constraints"*) that **re-pose the problem**, not identities the model role-plays. The mechanisms are different, so persona findings do not map directly onto frame selection. (Tracked in [issue #17](https://github.com/UditAkhourii/adhd/issues/17).)
+
+## Authoring your own frame
+
+A frame is ~5 lines in [`src/frames.ts`](https://github.com/UditAkhourii/adhd/blob/main/src/frames.ts). Append to the `FRAMES` array:
+
+```ts
+{
+  id: "supply-chain-attacker",
+  label: "Supply-chain attacker",
+  prompt:
+    "You compromise software by attacking what people TRUST: package managers, build tools, " +
+    "CI runners, vendored dependencies, mirror infrastructure. Re-ask this problem as: what " +
+    "would I plant, and where, to compromise the result without touching the application code?",
+  tags: ["code", "design", "wild"],
+},
+```
+
+| Field | What |
+|---|---|
+| `id` | kebab-case, stable forever — don't rename |
+| `label` | shown to the user; ~3 words |
+| `prompt` | the vantage prompt, written as an instruction to the generator: *"You are X. Re-ask this as Y."* |
+| `tags` | any of `code`, `design`, `general`, `wild`. Tags affect frame selection — code-mode biases toward `code`/`design`; `wild` always has one reserved slot per run. |
+
+### Quality bar
+
+A good frame passes at least **two** of:
+
+<CardGroup cols={3}>
+  <Card title="Distinct vocabulary" icon="spell-check">
+    Uses concepts no existing frame uses — pheromone trails, futures contracts, frame-perfect skip.
+  </Card>
+  <Card title="Distinct posture" icon="chess">
+    Adversarial vs constructive vs naive vs maximalist. Not just a different domain saying the same thing.
+  </Card>
+  <Card title="Reproducible distortion" icon="repeat">
+    Consistently surfaces ideas the other frames don't.
+  </Card>
+</CardGroup>
+
+### Test it
+
+Run your frame in isolation and check that the ideas are *structurally different* from what the other frames produce on the same problem:
+
+```bash
+# tweak src/cli.ts or write a quick scratch script that forces selectFrames
+# to return just your new frame, then run:
+npm run dev -- "design a write-ahead log under bursty load"
+```
+
+If the ideas are paraphrases of what the "hardware" or "logistics" frame already produces, the frame isn't earning its slot. Iterate the prompt. Full guide in [Contributing](/community/contributing).

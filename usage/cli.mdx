@@ -1,0 +1,48 @@
+---
+title: "CLI Reference"
+description: "Every adhd CLI flag, with common invocations."
+icon: "terminal"
+---
+
+Install globally and authenticate with `ANTHROPIC_API_KEY` (or inherit auth from a local Claude Code install):
+
+```bash
+npm install -g adhd-agent
+```
+
+## Examples
+
+```bash
+adhd "design a rate limiter that survives a leader election"
+
+adhd "name this function" --frames 3 --ideas 8 --top 2
+
+adhd "we have a CLI that hangs for 90s on LLM calls. what's the right retry/UX?" \
+    --frames 5 --ideas 6 --top 3 --context ./client.ts
+
+adhd "..." --json > result.json
+```
+
+## Flags
+
+| Flag | Default | What it does |
+| --- | --- | --- |
+| `--frames N` | 5 | parallel divergence branches |
+| `--ideas N` | 6 | ideas per branch |
+| `--top N` | 3 | how many ideas to deepen / focus |
+| `--concurrency N` | 4 | max parallel LLM calls |
+| `--context PATH` | — | inject a file as context (code, stack, constraints) |
+| `--model NAME` | SDK default | override model (generator + critic) |
+| `--critic-model NAME` | = `--model` | override model for the critic passes only (score + cluster) — use a different family to decorrelate critic errors |
+| `--no-code-mode` | — | don't bias frames toward engineering |
+| `--no-anchor-strip` | — | don't strip incidental anchors (stack, tool names) from the problem before fan-out |
+| `--json` | — | emit machine-readable `RunResult` |
+| `--quiet` | — | suppress progress events |
+
+<Tip>
+`--critic-model` exists so the judge and the generator don't share failure modes: scoring with a different model family decorrelates critic errors from generator errors.
+</Tip>
+
+## Output
+
+The default flow prints, in order: the clustered wide set with score chips, a 2–4 idea shortlist with the ★ non-obvious pick, the trap list with one-line reasons, the top-K deepened sketches, and a provocation. With `--json`, the same content is emitted as a structured [`RunResult`](/usage/library#the-result) for downstream programs.

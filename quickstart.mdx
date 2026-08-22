@@ -1,41 +1,106 @@
 ---
-title: "Get started with ADHD Focus in 5 minutes"
-description: "Create your account, complete your ADHD profile, and run your first focus session in under five minutes with this step-by-step guide."
-sidebarTitle: "Quickstart"
+title: "Quickstart"
+description: "Run your first ADHD loop in under two minutes — as an agent skill, from the CLI, or in TypeScript."
+icon: "rocket"
 ---
 
-This guide walks you through everything you need to start using ADHD Focus right now. In about five minutes, you will create your account, personalize the app to match how your brain works, add your first task, and complete your first focus session.
+Choose the **agent skill** for interactive use, the **CLI** for terminal runs, or the **library** inside an application. Node.js 18+ is required for the CLI and library.
 
-<Note>
-  The onboarding quiz takes about two minutes. It helps the app suggest focus lengths, break styles, and reminder timings that fit you, so it is worth completing before you dive in.
-</Note>
+## Use ADHD as an agent skill
 
 <Steps>
-  <Step title="Download or open the web app">
-    Install ADHD Focus from the App Store or Google Play, or open the web app in your browser. Pick the option that feels easiest right now.
+  <Step title="Install the skill">
+    One command, auto-detects your agent (Claude Code, Cursor, Antigravity, Codex, Cline, Gemini CLI, Windsurf, and ~50 more):
+
+    ```bash
+    npx skills add UditAkhourii/adhd
+    ```
   </Step>
-  <Step title="Create your account">
-    Tap **Sign Up** and register with your email address, or use **Sign in with Google** or **Sign in with Apple** for a faster setup. You will receive a confirmation email if you choose email registration.
+  <Step title="Restart your agent">
+    Restart so the skill is discovered.
   </Step>
-  <Step title="Complete the onboarding quiz">
-    Answer a few quick questions about your typical focus length, preferred break style, and how you like to view tasks. The app uses these answers to set your default focus session length, reminder frequency, and task display format.
-  </Step>
-  <Step title="Add your first task">
-    Tap the **Tasks** tab, then tap the **\+** button. Enter a task name, set a due date if you want one, and choose a priority level. Keep the description short and specific so the task feels doable.
-  </Step>
-  <Step title="Start your first Focus Session">
-    Go to the **Focus** tab, select the task you just added, and tap **Start Session**. The timer will run for the length you chose during onboarding, followed by a break. When the session ends, mark your task complete and collect your first reward.
+  <Step title="Invoke it">
+    Invoke explicitly:
+
+    ```text
+    /adhd "design a rate limiter that survives a leader election"
+    ```
+
+    The skill may also auto-trigger on open-ended design, naming, refactoring, and brainstorming prompts. It deliberately stays out of the way for lookups and known-root-cause bugs — see [the pre-flight gate](/usage/skill#the-pre-flight-gate).
   </Step>
 </Steps>
 
-That is it. You are now ready to use focus sessions, manage tasks, and build habits with a system built for the way your mind works.
+## Use the CLI
+
+<Steps>
+  <Step title="Authenticate">
+    Set `ANTHROPIC_API_KEY`, or — if Claude Code is installed locally — the CLI inherits its auth automatically.
+
+    ```bash
+    export ANTHROPIC_API_KEY="your-api-key"
+    ```
+  </Step>
+  <Step title="Install and run">
+    ```bash
+    npm install -g adhd-agent
+    adhd "design a retry strategy for an LLM request that sometimes hangs"
+    ```
+  </Step>
+</Steps>
+
+Common variations:
+
+```bash
+# Change breadth and the number of ideas deepened.
+adhd "name this feature-flag service" --frames 3 --ideas 8 --top 2
+
+# Add relevant source or constraints.
+adhd "find migration strategies" --context ./architecture.md
+
+# Write structured output for another program.
+adhd "design a queue" --json --quiet > result.json
+```
+
+Expect several LLM calls per run. The default flow returns clusters, a shortlist, traps, three deepened ideas, and a provocation.
+
+## Use the TypeScript library
+
+```bash
+npm install adhd-agent
+```
+
+```ts
+import { renderText, run } from "adhd-agent";
+
+const result = await run({
+  problem: "How should we shard this queue under bursty load?",
+  topK: 3,
+});
+
+console.log(renderText(result));
+// or operate on the structured result:
+//   result.shortlist · result.nonObviousPick · result.traps
+//   result.deepened  · result.clusters
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="adhd: command not found">
+    Reopen your shell and make sure npm's global binary directory is on `PATH`.
+  </Accordion>
+  <Accordion title="My agent doesn't discover the skill">
+    Follow the per-platform paths in [Installation](/installation) — some agents (notably certain Codex builds) need a forced target or a manual copy into their skills directory.
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Focus Sessions" icon="timer" href="/features/focus-sessions">
-    Learn how to customize timers, breaks, and session goals to match your attention span.
+  <Card title="Installation" icon="download" href="/installation">
+    Every install path — skill, CLI, library, Agent SDK, per-platform.
   </Card>
-
-  <Card title="Task Management" icon="list-check" href="/features/task-management">
-    Discover how to break big projects into small, clear steps and prioritize what matters today.
+  <Card title="CLI & Library reference" icon="book" href="/usage/cli">
+    Every flag and result type.
   </Card>
 </CardGroup>

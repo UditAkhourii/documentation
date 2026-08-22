@@ -1,0 +1,67 @@
+---
+title: "Agent Integration"
+description: "Call ADHD at decision points inside your own agent loop — the shape that pays the most."
+icon: "robot"
+---
+
+The highest-leverage way to use the library: call `run()` at **decision points** inside a larger planning, coding, or review agent, and feed the deepened sketches back into the agent's context.
+
+```ts
+import { run } from "adhd-agent";
+
+// inside your planning / coding / review agent
+if (agentIsAtADecisionPoint) {
+  const { shortlist, nonObviousPick, traps, deepened } = await run({
+    problem: framedDecision,
+    context: relevantCode,
+    framesPerRun: 4,
+    topK: 2,
+    codeMode: true,
+  });
+  // feed the deepened sketches back into your agent's context
+}
+```
+
+## Good moments to call it
+
+- An agent **stuck after N attempts** on a bug — widen the hypothesis space with new hypothesis *classes*
+- A planning agent at a **branch point with high uncertainty**
+- A code-review agent asked *"what could go wrong here"*
+- A refactor agent picking **which abstraction to introduce**
+- A test-generation agent generating **adversarial inputs** (the inversion frame is built for this)
+
+## Programmatic skill injection (Agent SDK)
+
+You can also inject the skill itself into a Claude Agent SDK session, letting the agent run the loop with its own Task tool instead of via the library:
+
+```ts
+import { query } from "@anthropic-ai/claude-agent-sdk";
+import { readFileSync } from "node:fs";
+
+const skill = readFileSync("./skills/adhd/SKILL.md", "utf8");
+
+for await (const m of query({
+  prompt: "design a retry strategy for a CLI whose LLM hangs for 90s",
+  options: {
+    systemPrompt: { type: "preset", preset: "claude_code", append: skill },
+    allowedTools: ["Task"],
+  },
+})) {
+  // …
+}
+```
+
+## Which shape to pick
+
+<CardGroup cols={2}>
+  <Card title="Library run() call" icon="code">
+    Minimal token substrate — each branch carries only the problem + frame prompt. Structured `RunResult` back. Best for batch and embedding in pipelines.
+  </Card>
+  <Card title="Skill inside a session" icon="wand-magic-sparkles">
+    The agent orchestrates the frames itself with fresh-context Task calls. Zero extra dependencies, but every branch re-loads the session's base context — see [the cost model](/concepts/when-to-use#cost--speed).
+  </Card>
+</CardGroup>
+
+## Real-world integrations
+
+Projects have wired ADHD into their own loops in several shapes — mesh-orchestrator peers ([repowire](https://github.com/prassanna-ravishankar/repowire)), a marketplace `think` plugin ([mstack](https://github.com/mayank-io/mstack)), an anchoring-bias pre-pass before review ([zk-flow-oss](https://github.com/matt-metivier/zk-flow-oss)), and a codebase-onboarding explanation engine ([wtfismyrepo](https://github.com/nandnijaiswal/wtfismyrepo)). See [Adopters](/community/adopters) for the full list.
