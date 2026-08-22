@@ -1,0 +1,80 @@
+---
+title: "How to Brainstorm with AI (Without Getting Generic Answers)"
+sidebarTitle: "Brainstorm with AI"
+description: "To brainstorm well with AI, stop asking one chat for a list. Run the question through several isolated sessions under different vantage points, ban the obvious first answers, then use a separate pass to score and shortlist. Isolation plus a critic beats any single clever prompt."
+icon: "lightbulb"
+---
+
+*Updated August 2026 · 6 min read · by the [ADHD](https://github.com/UditAkhourii/adhd) project*
+
+**Direct answer:** The reliable way to brainstorm with AI is a two-phase workflow: **diverge** by asking the same question in several isolated sessions, each from a different forced vantage point, with the obvious answers explicitly banned — then **converge** with a separate session that scores every idea, flags the seductive-but-broken ones, and commits to a shortlist. One chat asked for "20 ideas" produces 20 variations of one idea; isolated sessions produce genuinely different ones.
+
+## Why one-chat brainstorming disappoints
+
+Ask a single chat for ideas and three things bias the output toward mush:
+
+1. **Typicality** — alignment training makes the most familiar ideas the most probable ([mode collapse](https://arxiv.org/abs/2510.01171)).
+2. **Anchoring** — every idea is generated after, and conditioned on, the previous ones. The list converges as it grows.
+3. **Self-censorship** — one call playing both generator and critic pre-filters toward defensible, safe suggestions.
+
+The fixes are structural, and you can apply them by hand in any chat app today.
+
+## The manual workflow (works in any AI chat)
+
+<Steps>
+  <Step title="Write the problem once, cleanly">
+    One paragraph: the goal, the constraints, what "good" looks like. Strip hints toward your current favorite solution — they anchor.
+  </Step>
+  <Step title="Open 4–6 fresh chats and force a vantage point in each">
+    Same problem, different lens per chat. Steal these from ADHD's [frame library](/concepts/frames):
+
+    - *"You think in latency, memory layout, physical constraints. Re-ask this as a hardware problem."*
+    - *"You audit systems for failure modes. What must be provable or refusable here?"*
+    - *"You are a hostile competitor. How would you break the obvious solution? Invert into ideas."*
+    - *"Ask the OPPOSITE question — how would we guarantee failure? Negate each answer back."*
+    - *"$0 budget, one hour. What's the crudest version that still works?"*
+  </Step>
+  <Step title="Ban the obvious and forbid evaluation">
+    Append to every chat: *"The first three answers everyone would give are banned. Do not evaluate, rank, or hedge — just generate 6 short, distinct ideas."* Generation and judgment must not share a pass.
+  </Step>
+  <Step title="Converge in one final session">
+    Paste everything into a fresh chat: *"Score each idea 0–10 on novelty, viability, and fit. Flag any idea that looks attractive but is a trap, with a one-line reason. Cluster by underlying angle. Commit to a top 3."* Demand an opinion — "here are 20 ideas, you decide" is a cop-out.
+  </Step>
+</Steps>
+
+## The automated version for coding agents
+
+If you work in Claude Code, Cursor, Codex, or another agent, the [ADHD skill](https://github.com/UditAkhourii/adhd) runs this exact loop as parallel isolated agent calls — 5 frames, ~30 ideas, scored, clustered, traps pruned, top 3 deepened into sketches with risks and first steps:
+
+```bash
+npx skills add UditAkhourii/adhd
+/adhd "how should we position this developer tool?"
+```
+
+There's also a [CLI and TypeScript library](/usage/cli) for running it outside an agent. In blind-judged evals the loop scored 1.9× higher on breadth and 5.2× higher on trap detection than single-shot prompting ([results](/evals/results)).
+
+## When NOT to brainstorm with AI this way
+
+Skip the ceremony for lookups, bugs with a known root cause, or anything with one canonical answer — a direct question wins there. The test: *if a junior would Google it and find the answer, ask directly. If a senior would say "let me think about this differently for a minute," diverge.* More in [When to use ADHD](/concepts/when-to-use).
+
+## Frequently asked questions
+
+### How many ideas should I generate before converging?
+
+Around 20–30 for a real decision (4–6 lenses × 5–6 ideas). Stop early when new ideas start repeating the shape of existing ones — the space is mapped; padding to a number adds noise, not options.
+
+### Should I show the AI my favorite idea upfront?
+
+Not during divergence — it becomes an anchor and every "alternative" orbits it. Introduce your favorite in the *convergence* pass and ask the critic to score it against the field on the same axes.
+
+### Why ban the first three obvious answers?
+
+The obvious answers are the ones you already had — a senior engineer produces them in thirty seconds. Banning them forces the model past the peak of the distribution into the awkward middle, where the ideas you couldn't have listed yourself live.
+
+### What if the results are too weird?
+
+Weird is a feature during divergence and a bug after convergence. That's what the critic pass is for: absurd ideas earn their place by seeding viable ones, then get pruned with a reason. Never ship the wide set raw — always converge.
+
+---
+
+*Further reading: [How the diverge/focus loop works](/concepts/how-it-works) · [The 15 cognitive frames](/concepts/frames)*

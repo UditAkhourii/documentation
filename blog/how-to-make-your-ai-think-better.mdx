@@ -1,0 +1,78 @@
+---
+title: "How to Make Your AI Think Better"
+sidebarTitle: "How to make AI think better"
+description: "Make AI think better by structuring its reasoning: give it room to think before answering, force multiple independent attempts instead of one, separate generation from evaluation, and match the technique to the problem. Prompting harder helps less than changing the architecture of how the model reasons."
+icon: "brain"
+---
+
+*Updated August 2026 · 8 min read · by the [ADHD](https://github.com/UditAkhourii/adhd) project*
+
+**Direct answer:** You make an AI think better by changing *how* it reasons, not just *what* you ask. The four highest-leverage moves are: (1) give the model room to reason before it answers, (2) run multiple isolated attempts in parallel instead of one long chain, (3) separate the generator from the critic mechanically, and (4) match the reasoning technique to the problem type. Better prompts help; better reasoning architecture helps more.
+
+## Why "just prompt better" hits a ceiling
+
+Autoregressive models generate one token at a time, and each token is conditioned on everything before it. That means the model **anchors on whatever it says first**. Once a chain of thought commits to an early framing, every subsequent step drifts toward it — even when you explicitly ask for alternatives. Adding "think step by step" or "consider other options" varies the *output*; it does not change the *generator* that produces it.
+
+This is why the same model can feel brilliant on math and mediocre on open-ended design: linear reasoning is the right shape for problems with one correct answer, and the wrong shape for problems with many viable ones.
+
+## The four levers, in order of leverage
+
+### 1. Let the model reason before it answers
+
+Modern reasoning models (extended thinking, test-time compute) explore solution paths and verify work before producing a final answer. Use them for problems where a wrong answer is expensive — and skip them for simple lookups, where reasoning tokens only add latency and cost. If your model exposes a thinking budget, raise it for high-stakes questions instead of re-asking the same prompt five times.
+
+### 2. Run parallel, isolated attempts — not one longer chain
+
+A single chain told to "list 5 options" produces five variations of its first idea, because all five are generated into one shared context. Running the same question through **N isolated contexts** — separate API calls that cannot see each other — produces structurally different answers, because there is no first answer to anchor on.
+
+Research backs the diagnosis: post-training alignment causes [mode collapse](https://arxiv.org/abs/2510.01171) — models concentrate on typical, familiar outputs — and even lightweight formatting induces anchoring effects that [reduce semantic diversity](https://arxiv.org/html/2505.18949v1). Isolation attacks the problem structurally: diversity is produced by construction, not requested by a prompt.
+
+### 3. Separate the generator from the critic
+
+When one model call both generates and evaluates, the critic strangles the generator — the model pre-filters its own ideas toward safe, defensible ones. The fix is mechanical: one call (or several) with a system prompt that *forbids* evaluation, then a **separate call** with the opposite posture that scores, prunes, and ranks. Two postures, two passes, never mixed.
+
+### 4. Match the technique to the problem
+
+| Problem type | Best technique | Why |
+|---|---|---|
+| Math, multi-step logic | Chain-of-Thought / extended thinking | One correct answer; careful sequential steps win |
+| Search, planning, puzzles | Tree-of-Thought | Explore and backtrack over next-step variations |
+| Open-ended design, naming, strategy | Parallel divergent ideation | Many viable answers; anchoring is the enemy |
+| Lookups, known answers | Direct answer, no reasoning | Reasoning tokens are pure overhead |
+
+For the full comparison, see [ADHD vs CoT & ToT](/concepts/vs-cot-and-tot).
+
+## Putting it together: the diverge-then-converge loop
+
+The [ADHD skill](https://github.com/UditAkhourii/adhd) operationalizes levers 2 and 3 as a two-phase loop for coding agents:
+
+1. **Diverge.** Spawn 5 parallel, isolated LLM calls. Each sees the problem re-posed through one *cognitive frame* — a hardware engineer, a regulator, a 10-year-old, a speedrunner — plus a system prompt that forbids evaluation.
+2. **Focus.** A separate critic call scores every idea on novelty, viability, and fit; flags traps with one-line reasons; clusters ideas by underlying angle; and deepens the top 3 into build-ready sketches.
+
+In head-to-head evals against a single-shot baseline at the same model, this loop scored **2.9× higher on novelty and 5.2× higher on trap detection** across six open-ended engineering problems ([methodology](/evals/methodology)). One command installs it in Claude Code, Cursor, Codex, and ~50 other agents:
+
+```bash
+npx skills add UditAkhourii/adhd
+```
+
+## Frequently asked questions
+
+### Does asking the AI to "think step by step" make it think better?
+
+For math and logic, yes — chain-of-thought prompting measurably improves accuracy. For open-ended questions, it makes the answer more *thorough* but not more *diverse*: the chain still anchors on its first framing. Diversity requires isolated parallel attempts, not a longer single chain.
+
+### Is running multiple parallel calls just paying more for the same thing?
+
+No — the difference is mechanical. Five ideas generated in one context share an anchor; five ideas generated in five isolated contexts cannot see each other, so they diverge structurally. Cost scales linearly with branches, and you pay it only at decision points where the obvious answer being wrong is expensive.
+
+### Do bigger models think better automatically?
+
+Bigger models raise the ceiling, but they inherit the same anchoring mechanics: one context, sequential generation, typicality bias from alignment. A well-structured reasoning loop on a mid-size model routinely beats a raw prompt on a frontier model for open-ended work.
+
+### What's the cheapest single change I can make today?
+
+Ask your question in N fresh chats (or N parallel API calls) instead of one, then paste the results into a final session and ask it to score, cluster, and pick — with reasons. That's the generator/critic split done by hand. The [ADHD skill](/usage/skill) automates exactly this loop inside your coding agent.
+
+---
+
+*Further reading: [How ADHD works](/concepts/how-it-works) · [When to use it](/concepts/when-to-use) · [Verbalized Sampling (ICML 2026)](https://arxiv.org/abs/2510.01171)*
