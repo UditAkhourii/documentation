@@ -1,0 +1,68 @@
+---
+title: "What Is Premature Convergence in LLMs?"
+sidebarTitle: "Premature convergence, explained"
+description: "Premature convergence is when an LLM locks onto its first plausible framing and stops exploring, so every subsequent idea is a variation of the first. It's caused by autoregressive anchoring plus alignment-induced mode collapse, and it's fixed architecturally with isolated parallel generation."
+icon: "arrows-to-dot"
+---
+
+*Updated August 2026 · 6 min read · by the [ADHD](https://github.com/UditAkhourii/adhd) project*
+
+**Definition:** Premature convergence is the failure mode where a large language model commits to its first plausible framing of a problem and generates all subsequent "alternatives" as variations of it — converging on an answer before the option space has actually been explored. The output looks thorough (many ideas, structured lists) while being narrow (one underlying assumption, decorated).
+
+## What causes it
+
+### Autoregressive anchoring
+
+LLMs generate token by token, each conditioned on everything before it. Whatever the model writes first — a framing, a candidate answer, even a section heading — becomes context that biases everything after. In a "list 10 approaches" response, approach #7 is generated *after and conditioned on* approaches #1–6. Format alone can trigger this: research shows even lightweight structural choices [induce anchoring that reduces semantic diversity](https://arxiv.org/html/2505.18949v1).
+
+### Mode collapse from alignment
+
+Preference-based post-training rewards text that annotators find familiar — a *typicality bias* that sharpens the model's output distribution around expected answers. The result, documented as [mode collapse](https://arxiv.org/abs/2510.01171), is that the model's "first plausible framing" is nearly always the *most conventional* one. Anchoring then locks it in.
+
+### Single-context evaluation
+
+When the same call both generates and judges, the implicit critic filters ideas toward safe and defensible *during* generation. Exploration ends before it starts.
+
+## How to recognize it
+
+- Ten ideas that all share one underlying assumption ("all caching plays", "all retry variants")
+- Regenerating produces the same shortlist in different words
+- The recommendation matches the first thing the answer mentioned
+- No idea in the list surprises you — you could have written all of them
+- Zero "attractive but broken" candidates flagged (real exploration always finds traps)
+
+## Why it matters
+
+For questions with one correct answer, converging fast is *good* — that's efficiency. The cost appears on open-ended, high-stakes decisions: architecture, API design, naming, strategy, debugging without a known root cause. There, the textbook answer is frequently a trap that looks right because it's familiar, and the winning option lives past the first three ideas — in the region premature convergence never reaches.
+
+## How to fix it
+
+| Fix | Mechanism | Strength |
+|---|---|---|
+| [Verbalized sampling](https://arxiv.org/abs/2510.01171) | ask for answers *with probabilities*, making the distribution explicit | recovers 1.6–2.1× diversity, single call |
+| Fresh context per attempt | no shared context → no shared anchor | strong, manual effort |
+| Isolated branches + frames + separate critic | anchoring eliminated by construction; frames force distinct regions; critic prunes after | strongest; automatable |
+
+The third row is the architecture of the [ADHD skill](https://github.com/UditAkhourii/adhd): N parallel isolated LLM calls, each re-posing the problem through a different [cognitive frame](/concepts/frames), followed by a mechanically separate critic pass that scores, clusters, flags traps, and deepens survivors ([how it works](/concepts/how-it-works)). Evals against single-shot prompting show the gap premature convergence leaves on the table: novelty 7.83 vs 2.67, trap detection 9.50 vs 1.83 ([results](/evals/results)).
+
+## Frequently asked questions
+
+### Is premature convergence the same as mode collapse?
+
+They're related but distinct. Mode collapse is a *distributional* property (the model concentrates on typical outputs, from training). Premature convergence is a *generation-time* behavior (the model anchors on its first framing within one response). Mode collapse makes the first framing conventional; anchoring makes everything after follow it.
+
+### Does premature convergence affect reasoning models too?
+
+Yes. Extended thinking makes the chain longer and more careful, but it's still one chain in one context — the early framing still anchors the rest. Reasoning models converge *better*, not less prematurely, on open-ended questions.
+
+### Is it ever desirable?
+
+For closed problems, absolutely — fast convergence on the canonical answer is exactly what you want from "what's the syntax for X". The skill is knowing which regime you're in; a [pre-flight gate](/usage/skill#the-pre-flight-gate) that checks open-endedness, stakes, and phrasing does this automatically.
+
+### Can prompting alone prevent it?
+
+Only partially. "Consider alternatives" varies the output; the alternatives are still generated into one anchored context. Structural fixes — isolation, frame-shifted parallel branches, a separate critic — address the mechanism rather than the symptom. See [why prompted alternatives don't replicate parallel divergence](/concepts/vs-cot-and-tot#why-prompted-alternatives-dont-replicate-parallel-divergence).
+
+---
+
+*Further reading: [ADHD vs CoT & ToT](/concepts/vs-cot-and-tot) · [When to use ADHD](/concepts/when-to-use) · [the preprint](https://adhdstack.github.io/)*

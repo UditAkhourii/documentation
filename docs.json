@@ -55,6 +55,16 @@
           "community/adopters",
           "community/contributing"
         ]
+      },
+      {
+        "group": "Blog",
+        "pages": [
+          "blog/how-to-make-your-ai-think-better",
+          "blog/why-ai-gives-you-the-same-ideas",
+          "blog/chain-of-thought-vs-tree-of-thought",
+          "blog/how-to-brainstorm-with-ai",
+          "blog/what-is-premature-convergence-in-llms"
+        ]
       }
     ]
   },

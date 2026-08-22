@@ -1,0 +1,70 @@
+---
+title: "Why Does AI Always Give You the Same Ideas?"
+sidebarTitle: "Why AI repeats the same ideas"
+description: "AI gives you the same ideas because of mode collapse and anchoring: alignment training biases models toward typical answers, and generating into one shared context drags every 'alternative' toward the first one. The fix is structural — isolated parallel generation — not a cleverer prompt."
+icon: "rotate"
+---
+
+*Updated August 2026 · 7 min read · by the [ADHD](https://github.com/UditAkhourii/adhd) project*
+
+**Direct answer:** AI repeats the same ideas for two compounding reasons. First, **mode collapse**: alignment training rewards typical, familiar text, so models concentrate probability on the most expected answers. Second, **anchoring**: every token is conditioned on the tokens before it, so once a first idea lands in the context, every "alternative" drifts toward it. Prompting for creativity treats the symptom; changing the generation structure treats the cause.
+
+## The two mechanisms behind repetitive AI ideas
+
+### Mode collapse: the model prefers the familiar
+
+Research on [mode collapse in LLMs](https://arxiv.org/abs/2510.01171) traces the problem to *typicality bias* in preference data: human annotators systematically favor familiar text, so post-training sharpens the model's distribution around safe, expected outputs. Ask ten times for startup ideas and you get the same five, because those five sit at the peak of the distribution the training carved.
+
+### Anchoring: the first idea contaminates the rest
+
+Even when you ask for "10 different approaches," all ten are generated **sequentially into one shared context**. The attention mechanism drags idea #7 toward ideas #1–6. The result is decoration, not divergence: ten minor variations of one underlying assumption. Studies show even lightweight formatting choices [induce anchoring effects that reduce semantic diversity](https://arxiv.org/html/2505.18949v1).
+
+## What doesn't fix it
+
+- **"Be creative" / "think outside the box"** — adjusts tone, not the distribution the ideas are drawn from.
+- **Raising temperature** — adds noise around the same modes; you get weirder phrasings of the same ideas, plus more incoherence.
+- **Asking for more ideas** — extends the anchored chain. Idea #20 is still conditioned on ideas #1–19.
+- **Regenerating in the same chat** — the old answers are still in context, still anchoring.
+
+## What actually fixes it
+
+### 1. Verbalized sampling (cheap, single-call)
+
+Prompt the model to generate a set of responses *with their probabilities* — e.g., "give 5 answers and estimate how typical each is." Making the distribution explicit [recovers 1.6–2.1× more diversity](https://arxiv.org/abs/2510.01171) in creative tasks. Good first step; still one context, so anchoring persists.
+
+### 2. Fresh contexts per attempt (better)
+
+Ask the same question in N separate chats or API calls. No shared context means no shared anchor. This is the single highest-leverage manual habit for brainstorming with AI.
+
+### 3. Isolated parallel branches under different frames (best)
+
+Isolation removes the anchor; **frames** push each branch somewhere different. Re-pose the entire question from a deliberately distorted vantage point per branch — *"re-ask this as a hardware problem"*, *"as a regulator"*, *"as a speedrunner looking for exploits"*. Then run a **separate critic pass** to score, cluster, and prune, because unsorted weirdness is as useless as one safe answer.
+
+This is exactly what the [ADHD skill](/usage/skill) automates for coding agents: 5 parallel isolated branches under [15 cognitive frames](/concepts/frames), followed by a mechanical critic pass. In evals against single-shot prompting at the same model, novelty scored **7.83 vs 2.67** and trap detection **9.50 vs 1.83** ([full results](/evals/results)).
+
+```bash
+npx skills add UditAkhourii/adhd
+/adhd "give me ways to position this product"
+```
+
+## Frequently asked questions
+
+### Why does ChatGPT give generic answers even with detailed prompts?
+
+Detail narrows the topic but not the distribution. A detailed prompt still gets sampled from the same typicality-biased peak, and a single response still anchors on its own opening. Generic-ness is a property of *how* the answer is generated, which is why structural fixes (fresh contexts, parallel branches) outperform longer prompts.
+
+### Is temperature the same as diversity?
+
+No. Temperature spreads sampling *around* the existing modes — you get noisier versions of the same ideas. Diversity requires reaching *different* modes, which is what isolation and frame-shifting do.
+
+### How many parallel attempts do I need?
+
+Three to six covers most decisions. The [ADHD default](/usage/cli) is 5 branches × 6 ideas; scale up for strategy questions, down for quick naming tasks. Stop when new candidates start repeating the shape of existing ones.
+
+### Doesn't this cost more?
+
+Yes — roughly linear in branches, about 5–10× a single answer at defaults ([honest cost model](/concepts/when-to-use#cost--speed)). The economics work because you spend it only at decision points, where shipping the obvious-but-wrong answer costs far more than the extra calls.
+
+---
+
+*Further reading: [Why prompted alternatives don't replicate parallel divergence](/concepts/vs-cot-and-tot#why-prompted-alternatives-dont-replicate-parallel-divergence) · [The frame library](/concepts/frames)*

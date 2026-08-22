@@ -1,0 +1,74 @@
+---
+title: "Chain-of-Thought vs Tree-of-Thought: Which Should You Use?"
+sidebarTitle: "CoT vs ToT vs parallel"
+description: "Use Chain-of-Thought for math and multi-step logic, Tree-of-Thought for search and planning, and parallel divergent ideation for open-ended design where many answers are viable. The deciding question: does the problem have one correct answer, a findable path, or a space of options?"
+icon: "code-compare"
+---
+
+*Updated August 2026 · 7 min read · by the [ADHD](https://github.com/UditAkhourii/adhd) project*
+
+**Direct answer:** Choose by problem shape. **Chain-of-Thought (CoT)** wins on problems with one correct answer — math, logic, step-by-step derivation. **Tree-of-Thought (ToT)** wins when you must search a space and backtrack — planning, puzzles. **Parallel divergent ideation** wins on open-ended problems with many viable answers — design, naming, strategy — because it is the only one of the three that eliminates anchoring instead of managing it.
+
+## The three techniques at a glance
+
+| | Chain-of-Thought | Tree-of-Thought | Parallel divergent ideation |
+|---|---|---|---|
+| **Structure** | one linear chain | one tree, walked | N isolated parallel branches |
+| **Branches share context** | yes | yes (one session) | **no** — separate API calls |
+| **What varies per branch** | nothing | the next step | the **entire vantage point** |
+| **Generator vs critic** | same step | alternating, same context | separate calls, opposite prompts |
+| **Anchoring** | full | persists across branches | eliminated by construction |
+| **Best for** | math, logic | search, planning, puzzles | design, ideation, strategy |
+| **Cost** | 1× | 2–5× | ~5–10× (linear in branches) |
+
+## Chain-of-Thought: one head thinking slower
+
+CoT prompts the model to reason step by step before answering. It reliably improves accuracy on math, logic, and multi-step derivation — and modern reasoning models bake it in as extended thinking. Its limit: every step is conditioned on the previous ones, so by step 4 the chain has committed to a framing. For questions with one right answer that's a feature; for open questions it's the failure mode.
+
+**Use CoT when:** the problem has a verifiable correct answer and the risk is calculation error, not framing error.
+
+## Tree-of-Thought: one head searching wider
+
+ToT expands multiple candidate *next steps*, evaluates them, and backtracks — a search tree over reasoning states. It shines on puzzles and planning problems where the path matters. But the tree is typically walked inside **one shared session**: branches see each other's traces, so the anchoring of the first expansions persists across the whole tree. ToT varies the next move; it doesn't vary the question's framing.
+
+**Use ToT when:** you're searching for a path — game states, constraint puzzles, multi-step plans with dead ends.
+
+## Parallel divergent ideation: many heads, then an editor
+
+For open-ended problems, the bottleneck is not path-finding — it's that all candidates come from one anchored generator. Parallel divergent ideation spawns **N isolated branches** (separate API calls, zero shared context), each re-posing the *whole question* from a different cognitive frame, then runs a **separate critic call** to score, cluster, prune traps, and deepen the best ideas.
+
+The three load-bearing differences from CoT/ToT:
+
+1. **Isolation, not search** — branches never see each other, so anchoring is eliminated by construction.
+2. **Frames, not next-step variation** — each branch re-asks the entire question ("as an immune system", "as a regulator"), producing structurally different ideas rather than nearby ones.
+3. **A mechanical generator/critic split** — divergence is a call that *forbids* evaluation; convergence is a separate call that requires it.
+
+One-sentence version: *CoT makes one head think slower. ToT makes one head search wider. Parallel ideation makes many heads think differently, then has a critic pick.*
+
+The [ADHD skill](https://github.com/UditAkhourii/adhd) implements this loop for coding agents ([how it works](/concepts/how-it-works)). In evals across six open-ended engineering problems it beat single-shot prompting on breadth (9.00 vs 4.83), novelty (7.83 vs 2.67), and trap detection (9.50 vs 1.83) — [methodology and limitations here](/evals/methodology).
+
+## Decision guide
+
+- "What's the time complexity of this algorithm?" → **direct answer** (no reasoning needed)
+- "Prove this invariant holds" → **CoT / extended thinking**
+- "Find a sequence of moves that solves this" → **ToT**
+- "How should we shard this queue under bursty load?" → **parallel divergent ideation**
+- "Name this product" / "design this API surface" → **parallel divergent ideation**
+
+## Frequently asked questions
+
+### Is parallel divergent ideation just Tree-of-Thought with extra steps?
+
+It's a ToT *variant* with two structural changes: branching is driven by cognitive frames rather than next-step variation, and the generator/critic split is enforced by separate API calls rather than promised in one prompt. Those two changes are what eliminate anchoring — the thing in-context ToT can't do.
+
+### Can I combine them?
+
+Yes, and you should. Diverge in parallel to map the option space, then apply CoT/extended thinking *inside* the deepening pass on the top candidates. That's exactly the shape of ADHD's [focus phase](/concepts/how-it-works#phase-2--focus).
+
+### Which is cheapest?
+
+CoT (1 call) < ToT (a few calls) < parallel ideation (~10 calls at defaults). Match spend to stakes: reasoning on a lookup is waste; a single shot on an architecture decision is false economy. See the [cost model](/concepts/when-to-use#cost--speed).
+
+---
+
+*Further reading: [ADHD vs CoT & ToT — full comparison](/concepts/vs-cot-and-tot) · [When to use ADHD](/concepts/when-to-use)*
